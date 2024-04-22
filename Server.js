@@ -1,6 +1,9 @@
 const http = require('http');
 const fs = require('fs');
 
+let visitorCount = 0;
+let clients = [];
+
 const server = http.createServer((req, res) => {
     if (req.url === '/') {
         fs.readFile('index.html', (err, data) => {
@@ -11,13 +14,6 @@ const server = http.createServer((req, res) => {
     }
 });
 
-let visitorCount = 0;
-
-server.listen(3000, () => {
-    console.log('Server running on port 3000');
-});
-
-// SSE endpoint
 server.on('request', (req, res) => {
     if (req.url === '/events') {
         res.writeHead(200, {
@@ -26,14 +22,24 @@ server.on('request', (req, res) => {
             'Connection': 'keep-alive'
         });
 
-        
-        const interval = setInterval(() => {
-            res.write(`data: ${visitorCount}\n\n`);
-        }, 1000);
+     
+        clients.push(res);
 
-       
+      
         req.on('close', () => {
-            clearInterval(interval);
+            clients = clients.filter(client => client !== res);
         });
     }
 });
+
+setInterval(() => {
+    visitorCount++;
+    clients.forEach(client => {
+        client.write(`data: ${visitorCount}\n\n`);
+    });
+}, 1000);
+
+server.listen(3000, () => {
+    console.log('Server running on port 3000');
+});
+
