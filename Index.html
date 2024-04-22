@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Real-Time Visitor Counter</title>
+</head>
+<body>
+    <h1>Real-Time Visitor Counter</h1>
+    <p id="visitor-count">Loading...</p>
+
+    <script>
+        const eventSource = new EventSource('/events');
+        const visitorCountElement = document.getElementById('visitor-count');
+
+        eventSource.onmessage = (event) => {
+            visitorCountElement.textContent = `Visitors: ${event.data}`;
+        };
+
+        eventSource.onerror = (error) => {
+            console.error('EventSource failed:', error);
+            eventSource.close();
+        };
+    </script>
+</body>
+</html>
